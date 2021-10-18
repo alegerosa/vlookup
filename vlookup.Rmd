@@ -106,13 +106,13 @@ knitr::kable(my_ratings, format = "html")
 --
 .pull-right[
 ```{r, table_office_ratings, eval = TRUE, echo= FALSE, message=FALSE, warning=FALSE}
-knitr::kable(head(select(office_ratings, -imdb_rating, -total_votes)), format = "html")
+knitr::kable(head(select(office_ratings, -imdb_rating, -total_votes), n = 5), format = "html")
 ```
 ]
 
 --
-
-This is a join!
+<br><br>
+.center[This is a join!]
 
 ---
 
