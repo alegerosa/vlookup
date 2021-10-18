@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>How to do VLOOKUP in R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Alejandra Gerosa" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/rladies.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/rladies-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# How to do VLOOKUP in R
+## R-Ladies NYC Lightning Talks
+### Alejandra Gerosa
+### October 19th, 2021
+
+---
+
+
+
+
+# What is VLOOKUP?
+
+--
+
+.pull-left[
+![](img/excel_my_ratings.png "excel screenshot of table with 3 rows and 4 columns named date, season, episode and my_rating")
+]
+
+--
+
+.pull-right[
+![](img/excel_office_ratings.png "excel screenshot of first 19 rows of table with 6 columns named season, episode, title, imbd_rating, total_votes and air_date")
+]
+
+--
+
+=VLOOKUP([value to look for], [table to look in], [column nr], [approx. match ok?])
+
+--
+
+![](img/vlookup.png "excel screenshot showing first table with title and air_date columns added with a VLOOKUP formula; formula shon for one of the cells: '=VLOOKUP(E2,office_ratings!A:G,7,FALSE")
+
+
+---
+
+# Let's do this in R
+
+
+
+
+```r
+my_ratings
+```
+
+```
+## # A tibble: 3 x 4
+##   date       season episode my_rating
+##   &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;
+## 1 2021-06-25      1       1         6
+## 2 2021-08-01      3       4         8
+## 3 2021-10-15      2       4         9
+```
+
+```r
+office_ratings
+```
+
+```
+## # A tibble: 188 x 6
+##    season episode title             imdb_rating total_votes air_date  
+##     &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;dbl&gt;       &lt;dbl&gt; &lt;date&gt;    
+##  1      1       1 Pilot                     7.6        3706 2005-03-24
+##  2      1       2 Diversity Day             8.3        3566 2005-03-29
+##  3      1       3 Health Care               7.9        2983 2005-04-05
+##  4      1       4 The Alliance              8.1        2886 2005-04-12
+##  5      1       5 Basketball                8.4        3179 2005-04-19
+##  6      1       6 Hot Girl                  7.8        2852 2005-04-26
+##  7      2       1 The Dundies               8.7        3213 2005-09-20
+##  8      2       2 Sexual Harassment         8.2        2736 2005-09-27
+##  9      2       3 Office Olympics           8.4        2742 2005-10-04
+## 10      2       4 The Fire                  8.4        2713 2005-10-11
+## # … with 178 more rows
+```
+
+---
+
+# There's a package for that!
+
+
+```r
+install.packages("tidyquant")
+```
+--
+
+```r
+my_ratings_with_s_e &lt;- my_ratings %&gt;% 
+  mutate(s_e = paste("s", season, "e", episode, sep = "")) 
+
+office_ratings_with_s_e &lt;- office_ratings %&gt;% 
+  mutate(s_e = paste("s", season, "e", episode, sep = ""))
+```
+--
+
+```r
+my_ratings_with_more_info &lt;- my_ratings_with_s_e %&gt;% 
+  mutate(
+    title = tidyquant::VLOOKUP(s_e, office_ratings_with_s_e, s_e, title),
+    air_date = tidyquant::VLOOKUP(s_e, office_ratings_with_s_e, s_e, air_date)
+         )
+```
+--
+
+```
+## # A tibble: 3 x 7
+##   date       season episode my_rating s_e   title            air_date  
+##   &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;            &lt;date&gt;    
+## 1 2021-06-25      1       1         6 s1e1  Pilot            2005-03-24
+## 2 2021-08-01      3       4         8 s3e4  Grief Counseling 2006-10-12
+## 3 2021-10-15      2       4         9 s2e4  The Fire         2005-10-11
+```
+
+---
+
+# But what is a VLOOKUP, really?
+
+--
+
+.pull-left[
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; date &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; season &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; episode &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; my_rating &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 2021-06-25 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 2021-08-01 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 2021-10-15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+--
+.pull-right[
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; season &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; episode &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; title &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; air_date &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Pilot &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-03-24 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Diversity Day &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-03-29 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Health Care &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-04-05 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; The Alliance &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-04-12 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Basketball &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-04-19 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Hot Girl &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2005-04-26 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+--
+
+This is a join!
+
+---
+
+# VLOOKUP with the tidyverse: dplyr joins
+--
+
+```r
+left_join(my_ratings, office_ratings)
+```
+
+```
+## Joining, by = c("season", "episode")
+```
+
+```
+## # A tibble: 3 x 8
+##   date     season episode my_rating title     imdb_rating total_votes air_date  
+##   &lt;chr&gt;     &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt;       &lt;dbl&gt; &lt;date&gt;    
+## 1 2021-06…      1       1         6 Pilot             7.6        3706 2005-03-24
+## 2 2021-08…      3       4         8 Grief Co…         8          2311 2006-10-12
+## 3 2021-10…      2       4         9 The Fire          8.4        2713 2005-10-11
+```
+--
+
+```r
+left_join(my_ratings, office_ratings) %&gt;% select(-imdb_rating, -total_votes)
+```
+
+```
+## Joining, by = c("season", "episode")
+```
+
+```
+## # A tibble: 3 x 6
+##   date       season episode my_rating title            air_date  
+##   &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;            &lt;date&gt;    
+## 1 2021-06-25      1       1         6 Pilot            2005-03-24
+## 2 2021-08-01      3       4         8 Grief Counseling 2006-10-12
+## 3 2021-10-15      2       4         9 The Fire         2005-10-11
+```
+
+---
+
+# Why use joins?
+
+- You can join by multiple columns
+  - In this example: No need to create a "s1e1" column to use as an id
+
+--
+
+
+- You can add multiple columns at once
+  - In this example: no need for repetitious code in the mutate code
+
+--
+
+
+- You can use different join functions to suit the specific needs of your use case
+
+---
+
+# Obstacle: What if the data is messier?
+
+
+
+```r
+schrute_data
+```
+
+```
+## # A tibble: 55,130 x 12
+##   index season episode episode_name director  writer     character text         
+##   &lt;int&gt;  &lt;int&gt;   &lt;int&gt; &lt;chr&gt;        &lt;chr&gt;     &lt;chr&gt;      &lt;chr&gt;     &lt;chr&gt;        
+## 1     1      1       1 Pilot        Ken Kwap… Ricky Ger… Michael   All right Ji…
+## 2     2      1       1 Pilot        Ken Kwap… Ricky Ger… Jim       Oh, I told y…
+## 3     3      1       1 Pilot        Ken Kwap… Ricky Ger… Michael   So you've co…
+## 4     4      1       1 Pilot        Ken Kwap… Ricky Ger… Jim       Actually, yo…
+## 5     5      1       1 Pilot        Ken Kwap… Ricky Ger… Michael   All right. W…
+## # … with 55,125 more rows, and 4 more variables: text_w_direction &lt;chr&gt;,
+## #   imdb_rating &lt;dbl&gt;, total_votes &lt;int&gt;, air_date &lt;fct&gt;
+```
+--
+
+```r
+left_join(my_ratings, schrute_data)
+```
+
+```
+## Joining, by = c("season", "episode")
+```
+
+```
+## # A tibble: 784 x 14
+##   date   season episode my_rating index episode_name director writer   character
+##   &lt;chr&gt;   &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt; &lt;int&gt; &lt;chr&gt;        &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;    
+## 1 2021-…      1       1         6     1 Pilot        Ken Kwa… Ricky G… Michael  
+## 2 2021-…      1       1         6     2 Pilot        Ken Kwa… Ricky G… Jim      
+## 3 2021-…      1       1         6     3 Pilot        Ken Kwa… Ricky G… Michael  
+## 4 2021-…      1       1         6     4 Pilot        Ken Kwa… Ricky G… Jim      
+## 5 2021-…      1       1         6     5 Pilot        Ken Kwa… Ricky G… Michael  
+## # … with 779 more rows, and 5 more variables: text &lt;chr&gt;,
+## #   text_w_direction &lt;chr&gt;, imdb_rating &lt;dbl&gt;, total_votes &lt;int&gt;,
+## #   air_date &lt;fct&gt;
+```
+
+---
+
+# Solution: Create the tibble you'll need
+
+
+```r
+schrute_data_for_join &lt;- schrute_data %&gt;%
+  select(season, episode, title = episode_name, air_date) %&gt;% 
+  distinct()
+
+left_join(my_ratings, schrute_data_for_join)
+```
+
+```
+## Joining, by = c("season", "episode")
+```
+
+```
+## # A tibble: 3 x 6
+##   date       season episode my_rating title            air_date  
+##   &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;            &lt;fct&gt;     
+## 1 2021-06-25      1       1         6 Pilot            2005-03-24
+## 2 2021-08-01      3       4         8 Grief Counseling 2006-10-12
+## 3 2021-10-15      2       4         9 The Fire         2005-10-11
+```
+
+---
+
+# Conclusion: How to do VLOOKUP in R
+
+- If you need to replicate VLOOKUP as close to the excel version as possible, use
+the `VLOOKUP()` function from the `tidyquant` package.
+
+--
+
+- Consider using dplyr joins instead.
+
+--
+
+- If the dataframe that has the information you want has more columns than you want to add or it has duplicates in your lookup column(s), create the tibble you'll need before doing the join.
+
+--
+
+&lt;br&gt;&lt;br&gt;
+
+.center[
+  # Thank you!!
+  Alejandra Gerosa - @alejagerosa - hello@alegerosa.com
+]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
