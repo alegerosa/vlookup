@@ -125,7 +125,7 @@ my_ratings_with_more_info &lt;- my_ratings_with_s_e %&gt;%
 
 ---
 
-# But what is a VLOOKUP, really?
+# But what is VLOOKUP, really?
 
 --
 
@@ -261,6 +261,8 @@ left_join(my_ratings, office_ratings) %&gt;% select(-imdb_rating, -total_votes)
 
 # Why use joins?
 
+--
+
 - You can join by multiple columns
   - In this example: No need to create a "s1e1" column to use as an id
 
@@ -278,6 +280,8 @@ left_join(my_ratings, office_ratings) %&gt;% select(-imdb_rating, -total_votes)
 ---
 
 # Obstacle: What if the data is messier?
+
+--
 
 
 
@@ -351,7 +355,7 @@ left_join(my_ratings, schrute_data_for_join)
 
 # Conclusion: How to do VLOOKUP in R
 
-- If you need to replicate VLOOKUP as close to the excel version as possible, use
+- If you need to replicate VLOOKUP as close to the excel version as possible, you can use
 the `VLOOKUP()` function from the `tidyquant` package.
 
 --
